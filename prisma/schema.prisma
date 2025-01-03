@@ -1,0 +1,140 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ChallengeState {
+  open
+  closed
+  cancelled
+  matured
+}
+
+enum DataProvidedStatus {
+  waiting
+  proposed
+  accepted
+  contested
+}
+
+enum Sport {
+  football
+}
+
+model ChallengeTopic {
+  id              String           @id
+  name            String           @unique
+  description     String
+  challengeEvents ChallengeEvent[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model Challenge {
+  id                    Int                     @id
+  state                 ChallengeState
+  isMulti               Boolean
+  outcome               String?
+  transaction           String                  @unique
+  challengeOptions      ChallengeOption[]
+  challengeEvents       ChallengeEvent[]
+  participantStakes     ParticipantStake[]
+  participantWithdrawal ParticipantWithdrawal[]
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+}
+
+model ChallengeEvent {
+  id          Int                @id @default(autoincrement())
+  params      String
+  paramsJson  Json
+  topicId     String
+  topic       ChallengeTopic     @relation(fields: [topicId], references: [id])
+  maturity    Int
+  outcome     String?
+  status      DataProvidedStatus @default(waiting)
+  challengeId Int
+  challenge   Challenge          @relation(fields: [challengeId], references: [id])
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+model ChallengeOption {
+  id                     String                  @id
+  text                   String
+  hex                    String
+  participantStakes      ParticipantStake[]
+  participantWithdrawals ParticipantWithdrawal[]
+  challengeId            Int
+  challenge              Challenge               @relation(fields: [challengeId], references: [id])
+  createdAt              DateTime                @default(now())
+}
+
+model ParticipantStake {
+  id                Int             @id @default(autoincrement())
+  amount            BigInt
+  quantity          BigInt
+  price             BigInt
+  address           String
+  transaction       String          @unique
+  challengeId       Int
+  challenge         Challenge       @relation(fields: [challengeId], references: [id])
+  challengeOptionId String
+  challengeOption   ChallengeOption @relation(fields: [challengeOptionId], references: [id])
+  createdAt         DateTime        @default(now())
+}
+
+model ParticipantWithdrawal {
+  id                Int             @id @default(autoincrement())
+  amount            BigInt
+  quantity          BigInt
+  price             BigInt
+  transaction       String          @unique
+  challengeId       Int
+  challenge         Challenge       @relation(fields: [challengeId], references: [id])
+  challengeOptionId String
+  challengeOption   ChallengeOption @relation(fields: [challengeOptionId], references: [id])
+}
+
+model GeneralStatement {
+  id         Int                @id @default(autoincrement())
+  options    Json
+  published  Boolean            @default(false)
+  resolution String
+  outcome    String?
+  status     DataProvidedStatus @default(waiting)
+  maturity   Int
+}
+
+model MatchScoreOracle {
+  id        Int                @id @default(autoincrement())
+  matchId   Int
+  sport     Sport
+  homeScore Int?
+  awayScore Int?
+  maturity  Int
+  status    DataProvidedStatus @default(waiting)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+}
+
+model AssetPriceOracle {
+  id          Int                @id @default(autoincrement())
+  assetSymbol String
+  maturity    Int
+  price       Int?
+  status      DataProvidedStatus @default(waiting)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
