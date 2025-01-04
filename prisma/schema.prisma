@@ -128,7 +128,7 @@ model GeneralStatement {
 model FootballScoreOracle {
   id        Int                @id @default(autoincrement())
   matchId   Int
-  match     FootballMatch      @relation(fields: [matchId], references: [id])
+  match     FootballMatch      @relation(fields: [matchId], references: [apiFootballId])
   sport     Sport
   homeScore Int?
   awayScore Int?
