@@ -32,6 +32,13 @@ enum Sport {
   football
 }
 
+enum MatchStatus {
+  cancelled
+  upcoming
+  ongoing
+  past
+}
+
 model ChallengeTopic {
   id              String           @id
   name            String           @unique
@@ -109,6 +116,7 @@ model ParticipantWithdrawal {
 
 model GeneralStatement {
   id         Int                @id @default(autoincrement())
+  statement  String
   options    Json
   published  Boolean            @default(false)
   resolution String
@@ -117,9 +125,10 @@ model GeneralStatement {
   maturity   Int
 }
 
-model MatchScoreOracle {
+model FootballScoreOracle {
   id        Int                @id @default(autoincrement())
   matchId   Int
+  match     FootballMatch      @relation(fields: [matchId], references: [id])
   sport     Sport
   homeScore Int?
   awayScore Int?
@@ -132,9 +141,41 @@ model MatchScoreOracle {
 model AssetPriceOracle {
   id          Int                @id @default(autoincrement())
   assetSymbol String
+  asset       Asset              @relation(fields: [assetSymbol], references: [id])
   maturity    Int
   price       Int?
   status      DataProvidedStatus @default(waiting)
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
+}
+
+model FootballMatch {
+  id                   Int                   @id @default(autoincrement())
+  apiFootballId        Int                   @unique
+  homeTeamId           Int
+  homeTeamName         String                @db.VarChar(512)
+  awayTeamId           Int
+  awayTeamName         String                @db.VarChar(512)
+  leagueId             Int
+  leagueName           String                @db.VarChar(512)
+  leagueCountry        String                @db.VarChar(512)
+  startsOn             DateTime
+  status               MatchStatus
+  venue                String
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  footballScoreOracles FootballScoreOracle[]
+
+  @@index([leagueName])
+  @@index([homeTeamName])
+  @@index([awayTeamName])
+  @@index([leagueCountry])
+}
+
+model Asset {
+  id                String             @id
+  name              String
+  symbol            String
+  icon              String
+  assetPriceOracles AssetPriceOracle[]
 }
