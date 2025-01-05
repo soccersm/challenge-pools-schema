@@ -39,6 +39,11 @@ enum MatchStatus {
   past
 }
 
+enum DataSource {
+  ApiFootball
+  CCDATA
+}
+
 model ChallengeTopic {
   id              String           @id
   name            String           @unique
@@ -128,7 +133,7 @@ model GeneralStatement {
 model FootballScoreOracle {
   id        Int                @id @default(autoincrement())
   matchId   Int
-  match     FootballMatch      @relation(fields: [matchId], references: [apiFootballId])
+  match     FootballMatch      @relation(fields: [matchId], references: [externalMatchId])
   sport     Sport
   homeScore Int?
   awayScore Int?
@@ -151,7 +156,7 @@ model AssetPriceOracle {
 
 model FootballMatch {
   id                   Int                   @id @default(autoincrement())
-  apiFootballId        Int                   @unique
+  externalMatchId      Int                   @unique
   homeTeamId           Int
   homeTeamName         String                @db.VarChar(512)
   awayTeamId           Int
@@ -162,6 +167,8 @@ model FootballMatch {
   startsOn             DateTime
   status               MatchStatus
   venue                String
+  source               DataSource
+  scoreline            Json?
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   footballScoreOracles FootballScoreOracle[]
