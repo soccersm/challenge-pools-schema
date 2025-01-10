@@ -59,6 +59,9 @@ model Challenge {
   isMulti               Boolean
   outcome               String?
   transaction           String                  @unique
+  maturity              DateTime
+  tokenAddress          String
+  totalStakes           Int
   challengeOptions      ChallengeOption[]
   challengeEvents       ChallengeEvent[]
   participantStakes     ParticipantStake[]
@@ -86,6 +89,7 @@ model ChallengeOption {
   id                     String                  @id
   text                   String
   hex                    String
+  totalStakes            Int
   participantStakes      ParticipantStake[]
   participantWithdrawals ParticipantWithdrawal[]
   challengeId            Int
@@ -122,6 +126,7 @@ model ParticipantWithdrawal {
 model GeneralStatement {
   id         Int                @id @default(autoincrement())
   statement  String
+  image      String
   options    Json
   published  Boolean            @default(false)
   resolution String
@@ -184,5 +189,42 @@ model Asset {
   name              String
   symbol            String
   icon              String
+  source            DataSource
   assetPriceOracles AssetPriceOracle[]
+}
+
+model Airdrop {
+  id             String          @id
+  name           String
+  token          String
+  totalPool      Int
+  generalPool    Int
+  trophyPool     Int
+  startsOn       DateTime
+  endsOn         DateTime
+  sirdropSeasons AirdropSeason[]
+}
+
+model AirdropSeason {
+  id            String         @id
+  name          String
+  token         String
+  totalPool     Int
+  generalPool   Int
+  trophyPool    Int
+  airdropId     String
+  airdrop       Airdrop        @relation(fields: [airdropId], references: [id])
+  startsOn      DateTime
+  endsOn        DateTime
+  airdropClaims AirdropClaim[]
+}
+
+model AirdropClaim {
+  id              Int           @id @default(autoincrement())
+  transaction     String
+  address         String
+  airdropSeasonId String
+  airdrop         AirdropSeason @relation(fields: [airdropSeasonId], references: [id])
+  amount          Int
+  createdAt       DateTime      @default(now())
 }
