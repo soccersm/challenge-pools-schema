@@ -19,6 +19,9 @@ enum ChallengeState {
   closed
   cancelled
   matured
+  evaluated
+  settled
+  disputed
 }
 
 enum DataProvidedStatus {
@@ -66,6 +69,7 @@ model Challenge {
   challengeEvents       ChallengeEvent[]
   participantStakes     ParticipantStake[]
   participantWithdrawal ParticipantWithdrawal[]
+  challengeDisputes     ChallengeDisputes[]
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
 }
@@ -95,6 +99,16 @@ model ChallengeOption {
   challengeId            Int
   challenge              Challenge               @relation(fields: [challengeId], references: [id])
   createdAt              DateTime                @default(now())
+}
+
+model ChallengeDisputes {
+  id          String    @id
+  dispute     String
+  hex         String
+  stake       Int
+  challengeId Int
+  challenge   Challenge @relation(fields: [challengeId], references: [id])
+  createdAt   DateTime  @default(now())
 }
 
 model ParticipantStake {
@@ -127,7 +141,7 @@ model GeneralStatement {
   id         Int                @id @default(autoincrement())
   statement  String
   image      String
-  options    Json
+  options    String[]
   published  Boolean            @default(false)
   resolution String
   outcome    String?
